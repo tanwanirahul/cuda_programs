@@ -6,3 +6,6 @@
 *.fatbin
 .vscode
 src/*.ppm
+src/scratchpad.c
+src/scratchpad
+*.pgm
