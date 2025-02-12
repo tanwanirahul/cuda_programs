@@ -14,6 +14,110 @@ typedef struct ImageInfo {
 } Image;
 
 
+typedef struct GreyImageInfo {
+    bool status;
+    int width;
+    int height;
+    int maxVal;
+    unsigned char * grey;
+} GreyImage;
+
+
+/**
+ * Given the filename, loads the pgm image and returns the decoded image structure.
+ */
+GreyImage load_pgm_image(char *filename) {
+    GreyImage img;
+    int c;
+    FILE *fp;
+
+    //open PPM file for reading
+    fp = fopen(filename, "rb");
+    if (!fp) {
+        img.status = false;
+        return img;
+    }
+
+    // Read the header of the PPM file to extract the height and width information.
+    // The first two characteers should match the magic number P5.
+    if (getc(fp) != 'P' ||getc(fp) != '5') {
+        img.status = false;
+        return img;
+    }
+
+    //Skip comments if present.
+    c = getc(fp);
+    while (c == '#') {
+    while (getc(fp) != '\n') ;
+         c = getc(fp);
+    }
+    ungetc(c, fp);
+
+
+    // Read the width and height information from the header.
+    //read image size information
+    if (fscanf(fp, "%d %d", &img.width, &img.height) != 2) {
+        img.status = false;
+        return img;
+    }
+
+    //read max value of the image.
+    if (fscanf(fp, "%d", &img.maxVal) != 1) {
+        img.status = false;
+        return img;
+    }
+
+    //Assert mac value is less than 255 to read the color information in a single byte.
+    if (img.maxVal > 255) {
+        img.status = false;
+        return img;
+    }
+
+    // Skip through the remaining line.
+    while (fgetc(fp) != '\n') ;
+
+    // Allocate memory to read the image into Red, Green, Blue channel arrays.
+    img.grey = (unsigned char *) malloc(img.width * img.height * sizeof(char));
+
+    // Read width * height bytes from the file and load into
+    // grey buffer.
+    for(int i = 0; i<img.width * img.height; i++) {
+        img.grey[i] = fgetc(fp);
+    }
+    
+    fclose(fp);
+
+    img.status=true;
+    return img;
+}
+
+/**
+ * Given the GreyImage object and the output filename, saves the image content in PGM format
+ * at the given filename location.
+ */
+bool write_pgm_image(GreyImage *img, char * filename) {
+    FILE *out_file;
+    out_file = fopen(filename, "wb");
+
+    fprintf(out_file, "P5 %d %d %d\n", img->width, img->height, img->maxVal);
+    for(int i = 0; i<img->width*img->height; i++) {
+        fputc(img->grey[i], out_file);
+    }
+    fclose(out_file);
+    return true;
+}
+
+/*
+ Given the GreyImage that was previously loaded, unloads it by freeing the dynamically
+ allocated space to hold the image content.
+*/
+bool unload_pgm_image(GreyImage *image) {
+    free(image->grey);
+    return true;
+}
+
+
+
 /*
 * Given the filename, loads the ppm image and returns the decoded Image structure.
 */ 
@@ -125,6 +229,7 @@ Image create_sample_ppm_image(int width, int height) {
     img.status = true;
     return img;
 }
+
 /*
  Given the image that was previously loaded, unloads it by freeing the dynamically
  allocated space to hold the image content.
