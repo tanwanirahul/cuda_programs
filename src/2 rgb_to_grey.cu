@@ -1,5 +1,6 @@
 #include "stdlib.h"
 #include "img_utils.h"
+#include "timer.h"
 
 __global__ void rgb_to_grey_kernel(unsigned char * red, unsigned char * green, unsigned char * blue, unsigned char * grey, unsigned int width, unsigned int height) {
     unsigned int row = blockIdx.y * blockDim.y + threadIdx.y;
@@ -17,28 +18,41 @@ void rgb_to_grey_wrapper(unsigned char * red, unsigned char * green, unsigned ch
     unsigned char *red_d, *green_d, *blue_d, *grey_d;
     size_t image_size = sizeof(unsigned char) * width * height;
 
+    Timer timer;
+    timer = initTimer(1);
+    startTimer(&timer);
     cudaMalloc((void **) &red_d, image_size);
     cudaMalloc((void **) &green_d, image_size);
     cudaMalloc((void **) &blue_d, image_size);
     cudaMalloc((void **) &grey_d, image_size);
-    cudaDeviceSynchronize(); 
+    cudaDeviceSynchronize();
+    stopAndPrintElapsed(&timer, "GPU Device Memory Allocation Time: ", CYAN);
 
+
+    timer = initTimer(1);
+    startTimer(&timer);
     // Copy data from Host to GPU.
     cudaMemcpy(red_d, red, image_size, cudaMemcpyHostToDevice);
     cudaMemcpy(green_d, green, image_size, cudaMemcpyHostToDevice);
     cudaMemcpy(blue_d, blue, image_size, cudaMemcpyHostToDevice);
     cudaDeviceSynchronize(); 
+    stopAndPrintElapsed(&timer, "Time To Copy Data to GPU DRAM: ", CYAN);
     
+    timer = initTimer(1);
+    startTimer(&timer);
     // Do the computation on the device.
     dim3 threadsPerBlock(32, 32);
     dim3 numBlocks((width + threadsPerBlock.x - 1) / threadsPerBlock.x, (height + threadsPerBlock.y - 1) / threadsPerBlock.y ); 
     rgb_to_grey_kernel<<< numBlocks, threadsPerBlock >>>(red_d, green_d, blue_d, grey_d, width, height);
     cudaDeviceSynchronize(); 
- 
+    stopAndPrintElapsed(&timer, "CUDA Kernel Execution Time: ", GREEN);
     
+    timer = initTimer(1);
+    startTimer(&timer);
     // Copy the results back from GPU  to Host.
     cudaMemcpy(grey, grey_d, image_size, cudaMemcpyDeviceToHost);
     cudaDeviceSynchronize();
+    stopAndPrintElapsed(&timer, "Time to COPY Results from GPU to HOST: ", CYAN);
 
     // Deallocate memory from the GPU device.
     cudaFree(red_d);
