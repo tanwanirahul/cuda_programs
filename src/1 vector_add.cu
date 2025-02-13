@@ -3,6 +3,7 @@
 __global__ void vec_add_kernel(float *x_d, float *y_d, float *result_d, unsigned int N) {
 
     unsigned int thread_id = (blockIdx.x * blockDim.x) + threadIdx.x;
+
     if (thread_id < N) {
         result_d[thread_id] = x_d[thread_id] + y_d[thread_id];
     }
@@ -13,6 +14,9 @@ void vec_add_GPU(float *x, float *y, float *result, unsigned int N)
     // Step 1 - Allocate memory of the GPU device.
     // Q - How do we specify the device where we want this memory to be allocated?
     float *x_d, *y_d, *result_d;
+    Timer timer;
+    timer = initTimer(1);
+    startTimer(&timer);
     cudaMalloc((void**) &x_d, N * sizeof(float) );
     cudaMalloc((void**) &y_d, N * sizeof(float) );
     cudaMalloc((void**) &result_d, N * sizeof(float) );
@@ -20,11 +24,12 @@ void vec_add_GPU(float *x, float *y, float *result, unsigned int N)
     // Copy data from host to GPU device.
     cudaMemcpy(x_d, x, N*sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(y_d, y, N*sizeof(float), cudaMemcpyHostToDevice);
-
-    Timer timer;
-    //timer = initTimer(1);
+    cudaDeviceSynchronize();
+    stopTimer(&timer);
+    printElapsedTime(&timer, "Data Transfer from Host to GPU:", CYAN);
+    
+    timer = initTimer(1);
     startTimer(&timer);
-
     // Perform parallel computation.
     const unsigned int numThreadsPerBlock = 512;
     const unsigned int numBlocks = (N + numThreadsPerBlock - 1) / numThreadsPerBlock;
@@ -35,6 +40,7 @@ void vec_add_GPU(float *x, float *y, float *result, unsigned int N)
 
     // Copy results from GPU device to host memory.
     cudaMemcpy(result, result_d, N*sizeof(float), cudaMemcpyDeviceToHost);
+    cudaDeviceSynchronize();
 
     // Deallocate memory on GPU device.
     cudaFree((void*)x_d);
@@ -60,6 +66,7 @@ int main(int argc, char **argv)
     float *x = (float*) malloc(N * sizeof(float));
     float *y = (float*) malloc(N * sizeof(float));
     float *result = (float*) malloc(N * sizeof(float));
+    float *result_GPU = (float*) malloc(N * sizeof(float));
 
     // create a random data for addition.
     for (unsigned int i = 0; i < N; i++) {
@@ -76,8 +83,13 @@ int main(int argc, char **argv)
     //Timer timer_gpu;
     timer = initTimer(1);
     startTimer(&timer);
-    vec_add_GPU(x, y, result, N);
+    vec_add_GPU(x, y, result_GPU, N);
+
     stopAndPrintElapsed(&timer, "GPU End to End Executiom Time: ", GREEN);
+
+    //for(int i=0; i<100; i++) {
+    //    printf("%d: %f.   %f    %f\n", i, x[i], y[i], result_GPU[i]);
+    //}
 
     free(x);
     free(y);
