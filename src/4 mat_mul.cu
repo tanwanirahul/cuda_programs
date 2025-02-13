@@ -1,5 +1,8 @@
+%%writefile mat_mul.cu
+
 #include "stdlib.h"
 #include "matrix_utils.h"
+#include "timer.h"
 
 __global__ void mat_mul_kernel(float *A, float *B, float *C, unsigned int N) {
 
@@ -19,6 +22,10 @@ void mat_mul_wrapper(float * A, float * B, float * C, unsigned int N) {
     float *A_d, *B_d, *C_d;
     size_t mat_size = sizeof(float) * N * N;
 
+    Timer timer;
+    timer = initTimer(1);
+    startTimer(&timer);
+
     cudaError_t error;
     error = cudaMalloc((void **) &A_d, mat_size);
     if (error != cudaSuccess) {
@@ -36,23 +43,41 @@ void mat_mul_wrapper(float * A, float * B, float * C, unsigned int N) {
         return;
     }
     cudaDeviceSynchronize();
+    printf("Allocated required memory on the CUDA device.\n\n");
+    stopAndPrintElapsed(&timer, "GPU Device Memory Allocation Time: ", CYAN);
 
-    printf("\nAllocated required memory on the CUDA device.");
+    
 
     // Copy data from Host to GPU.
+    timer = initTimer(1);
+    startTimer(&timer);
+    
     cudaMemcpy(A_d, A, mat_size, cudaMemcpyHostToDevice);
     cudaMemcpy(B_d, B, mat_size, cudaMemcpyHostToDevice);
+
     cudaDeviceSynchronize();
+    stopAndPrintElapsed(&timer, "Time To Copy Data to GPU DRAM: ", CYAN);
+
 
     // Do the computation on the device.
+    timer = initTimer(1);
+    startTimer(&timer);
+
     dim3 threadsPerBlock(32, 32);
     dim3 numBlocks((N + threadsPerBlock.x - 1) / threadsPerBlock.x, (N + threadsPerBlock.y - 1) / threadsPerBlock.y); 
     mat_mul_kernel <<<numBlocks, threadsPerBlock>>>(A_d, B_d, C_d, N);
+
     cudaDeviceSynchronize();
+    stopAndPrintElapsed(&timer, "CUDA Kernel Execution Time: ", GREEN);
 
     // Copy the results back from GPU  to Host.
+    timer = initTimer(1);
+    startTimer(&timer);
+
     cudaMemcpy(C, C_d, mat_size, cudaMemcpyDeviceToHost);
+    
     cudaDeviceSynchronize();
+    stopAndPrintElapsed(&timer, "Time to COPY Results from GPU to HOST: ", CYAN);
 
     // Deallocate memory from the GPU device.
     cudaFree((void*) A_d);
