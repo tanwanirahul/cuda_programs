@@ -84,7 +84,7 @@ GreyImage load_pgm_image(char *filename) {
     for(int i = 0; i<img.width * img.height; i++) {
         img.grey[i] = fgetc(fp);
     }
-    
+
     fclose(fp);
 
     img.status=true;
@@ -107,6 +107,32 @@ bool write_pgm_image(GreyImage *img, char * filename) {
     return true;
 }
 
+/**
+ * Creates a sample GreyImage in the pgm format with the given dimensions.
+ */
+GreyImage create_sample_pgm_image(int width, int height) {
+    GreyImage img;
+    unsigned char red,green,blue;
+
+    img.maxVal = 255;
+    img.width = width;
+    img.height = height;
+
+    img.grey = (unsigned char*) malloc(img.width * img.height * sizeof(unsigned char));
+
+    for(int r=0; r<img.width; r++) {
+        for(int g=0; g<img.height; g++) {
+        red = r%256;
+        green = g%256;
+        blue = 20;
+        img.grey[r*img.width + g] = (unsigned char)(red * 0.3) + (green * 0.6) + (blue * 0.1);
+        }
+    }
+    img.status = true;
+    return img;
+}
+
+
 /*
  Given the GreyImage that was previously loaded, unloads it by freeing the dynamically
  allocated space to hold the image content.
@@ -115,8 +141,6 @@ bool unload_pgm_image(GreyImage *image) {
     free(image->grey);
     return true;
 }
-
-
 
 /*
 * Given the filename, loads the ppm image and returns the decoded Image structure.
