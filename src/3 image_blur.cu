@@ -1,5 +1,3 @@
-%%writefile image_blur.cu
-
 #include "stdlib.h"
 #include "img_utils.h"
 #include "timer.h"
