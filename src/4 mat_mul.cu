@@ -1,5 +1,3 @@
-%%writefile mat_mul.cu
-
 #include "stdlib.h"
 #include "matrix_utils.h"
 #include "timer.h"
