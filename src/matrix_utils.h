@@ -22,6 +22,8 @@ Matrix ones_matrix_2D(unsigned int rows, unsigned int cols) {
     for(int i = 0; i < rows * cols; i++) {
         mat.buffer[i] = 1.0;
     }
+    mat.rows = rows;
+    mat.cols = cols;
     return mat;
 
 }
@@ -37,6 +39,8 @@ Matrix zeros_matrix_2D(unsigned int rows, unsigned int cols) {
     for(int i = 0; i < rows * cols; i++) {
         mat.buffer[i] = 0.0;
     }
+    mat.rows = rows;
+    mat.cols = cols;
     return mat;
 }
 
@@ -52,6 +56,8 @@ Matrix random_matrix_2D(unsigned int rows, unsigned int cols) {
     for(int i = 0; i < rows * cols; i++) {
         mat.buffer[i] = rand();
     }
+    mat.rows = rows;
+    mat.cols = cols;
     return mat;
 }
 
@@ -68,6 +74,8 @@ Matrix identity_matrix_2D(unsigned int N) {
         for(int j = 0; j < N; j++)
             mat.buffer[(i*N)+j] = (i==j) ? 1.0 : 0.0;
     }
+    mat.rows = N;
+    mat.cols = N;
     return mat;
 
 }
