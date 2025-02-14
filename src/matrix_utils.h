@@ -72,6 +72,23 @@ Matrix identity_matrix_2D(unsigned int N) {
 
 }
 
+/**
+ *  Given the two Matrix, compares their elements and returns true
+ * if all the elements are equal, false otherwise.
+ */
+bool are_matrix_equal(Matrix *A, Matrix *B ) {
+
+    if(A->rows != B->rows)
+        return false;
+    if(A->cols != B->cols)
+        return false;
+    for(unsigned int i=0; i<A->rows; i++) {
+        for(unsigned int j=0; j<A->cols; j++)
+            if(A->buffer[(i*A->cols) +j] != B->buffer[(i*B->cols) +j])
+                return false;
+    }
+    return true;
+}
 
 /**
  * Releases the dynamically allocated memory for the metrix.
