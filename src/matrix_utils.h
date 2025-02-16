@@ -108,6 +108,31 @@ bool are_matrix_equal(Matrix *A, Matrix *B ) {
 }
 
 /**
+ *  Given the two 3D Matrix, compares their elements and returns true
+ * if all the elements are equal, false otherwise.
+ */
+bool are_matrix_equal_3D(Matrix3D *A, Matrix3D *B ) {
+
+    if(A->depth != B->depth)
+        return false;
+    if(A->rows != B->rows)
+        return false;
+    if(A->cols != B->cols)
+        return false;
+    for(unsigned int i=0; i<A->depth; i++) {
+        for(unsigned int j=0; j<A->rows; j++){
+            for(unsigned int k=0; k<A->cols; k++){
+                unsigned int index = (i*A->rows*A->cols) + (j*A->cols) + k;
+                if(A->buffer[index] != B->buffer[index])
+                    return false;
+            }
+        }
+    }
+    return true;
+}
+
+
+/**
  * Creates a 3D matrix of depth*rows*cols in the depth-wise Row Major format with
  * all values set to 1.0;
  */
