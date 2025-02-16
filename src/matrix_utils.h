@@ -196,4 +196,12 @@ bool release_matrix(Matrix * mat) {
     return true;
 }
 
+/**
+ * Releases the dynamically allocated memory for the metrix.
+ */
+bool release_matrix_3D(Matrix3D * mat) {
+    free(mat->buffer);
+    return true;
+}
+
 #endif
