@@ -11,6 +11,15 @@ typedef struct MatrixInfo {
     float * buffer;
 } Matrix;
 
+
+typedef struct MatrixInfo3D {
+    unsigned int depth;
+    unsigned int rows;
+    unsigned int cols;
+    float * buffer;
+} Matrix3D;
+
+
 /**
  * Creates a 2D matrix of rows*cols in the Row Major format with
  * all values set to 1.0;
@@ -97,6 +106,62 @@ bool are_matrix_equal(Matrix *A, Matrix *B ) {
     }
     return true;
 }
+
+/**
+ * Creates a 3D matrix of depth*rows*cols in the depth-wise Row Major format with
+ * all values set to 1.0;
+ */
+Matrix3D ones_matrix_3D(unsigned int depth, unsigned int rows, unsigned int cols) {
+
+    Matrix3D mat;
+    mat.buffer = (float *) malloc(depth * rows * cols * sizeof(float));
+    for(int i = 0; i < depth * rows * cols; i++) {
+        mat.buffer[i] = 1.0;
+    }
+    mat.depth = depth;
+    mat.rows = rows;
+    mat.cols = cols;
+    return mat;
+
+}
+
+/**
+ * Creates a 3D matrix of depth*rows*cols in the depthwise Row Major format with
+ * all values set to 0.0;
+ */
+Matrix3D zeros_matrix_3D(unsigned int depth, unsigned int rows, unsigned int cols) {
+
+    Matrix3D mat;
+    mat.buffer = (float *) malloc(depth * rows * cols * sizeof(float));
+    for(int i = 0; i < depth * rows * cols; i++) {
+        mat.buffer[i] = 0.0;
+    }
+    mat.depth = depth;
+    mat.rows = rows;
+    mat.cols = cols;
+
+    return mat;
+}
+
+
+/**
+ * Creates a 3D matrix of depth*rows*cols in the depth-wise Row Major format with
+ * all values set to a random value;
+ */
+Matrix3D random_matrix_3D(unsigned int depth, unsigned int rows, unsigned int cols) {
+
+    Matrix3D mat;
+    mat.buffer = (float *) malloc(depth * rows * cols * sizeof(float));
+    for(int i = 0; i < depth * rows * cols; i++) {
+        mat.buffer[i] = rand();
+    }
+    mat.depth = depth;
+    mat.rows = rows;
+    mat.cols = cols;
+    return mat;
+}
+
+
 
 /**
  * Releases the dynamically allocated memory for the metrix.
