@@ -9,3 +9,4 @@ src/*.ppm
 src/scratchpad.c
 src/scratchpad
 *.pgm
+src/*_debug*
