@@ -87,6 +87,26 @@ Matrix1D random_clipped_matrix_1D(unsigned int length, unsigned int maxValue) {
 }
 
 /**
+ * Creates a 1D matrix of length elements with
+ * all values sorted and set to a random value with the delta
+ * between two values not exceeding delta.
+ */
+Matrix1D random_sorted_matrix_1D(unsigned int length, unsigned int delta) {
+
+    Matrix1D mat;
+    mat.buffer = (float *) malloc(length * sizeof(float));
+    for(int i = 0; i < length; i++) {
+        if(i==0)
+            mat.buffer[i] = rand() % (delta + 1);    
+        else
+            mat.buffer[i] = mat.buffer[i -1] + (rand() % (delta + 1));
+    }
+    mat.length = length;
+    return mat;
+}
+
+
+/**
  * Returns if the 1D matrix is sorted. 
  */
 bool is_matrix_sorted_1D(Matrix1D *A) {
