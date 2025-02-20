@@ -20,6 +20,87 @@ typedef struct MatrixInfo3D {
 } Matrix3D;
 
 
+typedef struct MatrixInfo1D {
+    unsigned int length;
+    float * buffer;
+} Matrix1D;
+
+
+/**
+ * Creates a 1D matrix of length elements with
+ * all values set to 1.0;
+ */
+Matrix1D ones_matrix_1D(unsigned int length) {
+
+    Matrix1D mat;
+    mat.buffer = (float *) malloc(length * sizeof(float));
+    for(int i = 0; i < length; i++) {
+        mat.buffer[i] = 1.0;
+    }
+    mat.length = length;
+    return mat;
+}
+
+/**
+ * Creates a 1D matrix of length elements with
+ * all values set to 0.0;
+ */
+Matrix1D zeros_matrix_1D(unsigned int length) {
+
+    Matrix1D mat;
+    mat.buffer = (float *) malloc(length * sizeof(float));
+    for(int i = 0; i < length; i++) {
+        mat.buffer[i] = 0.0;
+    }
+    mat.length = length;
+    return mat;
+}
+
+/**
+ * Creates a 1D matrix of length elements with
+ * all values set to a random value;
+ */
+Matrix1D random_matrix_1D(unsigned int length) {
+
+    Matrix1D mat;
+    mat.buffer = (float *) malloc(length * sizeof(float));
+    for(int i = 0; i < length; i++) {
+        mat.buffer[i] = rand();;
+    }
+    mat.length = length;
+    return mat;
+}
+
+/**
+ * Creates a 1D matrix of length elements with
+ * all values set to a random value;
+ */
+Matrix1D random_clipped_matrix_1D(unsigned int length, unsigned int maxValue) {
+
+    Matrix1D mat;
+    mat.buffer = (float *) malloc(length * sizeof(float));
+    for(int i = 0; i < length; i++) {
+        mat.buffer[i] = rand() % (maxValue + 1);
+    }
+    mat.length = length;
+    return mat;
+}
+
+/**
+ *  Given the two Matrix, compares their elements and returns true
+ * if all the elements are equal, false otherwise.
+ */
+bool are_matrix_equal_1D(Matrix1D *A, Matrix1D *B ) {
+
+    if(A->length != B->length)
+        return false;
+    for(unsigned int i=0; i<A->length; i++) {
+        if(A->buffer[i] != B->buffer[i])
+            return false;
+    }
+    return true;
+}
+
 /**
  * Creates a 2D matrix of rows*cols in the Row Major format with
  * all values set to 1.0;
@@ -200,6 +281,14 @@ bool release_matrix(Matrix * mat) {
  * Releases the dynamically allocated memory for the metrix.
  */
 bool release_matrix_3D(Matrix3D * mat) {
+    free(mat->buffer);
+    return true;
+}
+
+/**
+ * Releases the dynamically allocated memory for the metrix.
+ */
+bool release_matrix_1D(Matrix1D * mat) {
     free(mat->buffer);
     return true;
 }
