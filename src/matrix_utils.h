@@ -87,6 +87,16 @@ Matrix1D random_clipped_matrix_1D(unsigned int length, unsigned int maxValue) {
 }
 
 /**
+ * Returns if the 1D matrix is sorted. 
+ */
+bool is_matrix_sorted_1D(Matrix1D *A) {
+    for(unsigned int i =0; i<A->length - 1; i++) {
+        if(A->buffer[i+1] < A->buffer[i])
+            return false;
+    }
+    return true;
+}
+/**
  *  Given the two Matrix, compares their elements and returns true
  * if all the elements are equal, false otherwise.
  */
