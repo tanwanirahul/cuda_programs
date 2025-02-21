@@ -37,6 +37,8 @@ typedef struct SparseMatrixInfo2DCOO {
 
 // Declarations.
 bool release_matrix(Matrix * mat);
+Matrix identity_matrix_2D(unsigned int N);
+
 
 /**
  * Given the Matrix2D format, converts it into the Sparse matrix
@@ -120,6 +122,17 @@ SparseMatrix2DCOO random_sparse_matrix_2D_COO(float sparsityFactor, unsigned int
     mat.cols = cols;
 
     SparseMatrix2DCOO coo_matrix = _convert_2D_matrix_to_sparse_COO(&mat, nonZeroElements);
+    release_matrix(&mat);
+    return coo_matrix;
+}
+
+/**
+ * Creates a 2D identity matrix in the Sparse COO format.
+ */
+SparseMatrix2DCOO identity_sparse_matrix_2D_COO(unsigned int N) {
+
+    Matrix mat = identity_matrix_2D(N);
+    SparseMatrix2DCOO coo_matrix = _convert_2D_matrix_to_sparse_COO(&mat, N);
     release_matrix(&mat);
     return coo_matrix;
 }
@@ -428,6 +441,7 @@ bool release_sparse_matrix_2D_COO(SparseMatrix2DCOO * matrix) {
     free(matrix->rowIdxs);
     free(matrix->colIdxs);
     free(matrix->values);
+    return true;
 }
 
 #endif
