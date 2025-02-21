@@ -26,6 +26,104 @@ typedef struct MatrixInfo1D {
 } Matrix1D;
 
 
+typedef struct SparseMatrixInfo2DCOO {
+    unsigned int numRows;
+    unsigned int numCols;
+    unsigned int numNonZeros;
+    unsigned int * rowIdxs;
+    unsigned int * colIdxs;
+    float * values;
+} SparseMatrix2DCOO;
+
+// Declarations.
+bool release_matrix(Matrix * mat);
+
+/**
+ * Given the Matrix2D format, converts it into the Sparse matrix
+ * COO format.
+ */
+SparseMatrix2DCOO _convert_2D_matrix_to_sparse_COO(Matrix *mat, unsigned int nonZeroElements) {
+    SparseMatrix2DCOO coo_matrix;
+    coo_matrix.colIdxs = (unsigned int *) malloc(sizeof(unsigned int) * nonZeroElements);
+    coo_matrix.rowIdxs = (unsigned int *) malloc(sizeof(unsigned int) * nonZeroElements);
+    coo_matrix.values = (float *) malloc(sizeof(float) * nonZeroElements);
+    coo_matrix.numNonZeros = nonZeroElements;
+    coo_matrix.numRows = mat->rows;
+    coo_matrix.numCols = mat->cols;
+
+    unsigned int nnz_ctr = 0.0;
+    for(int i = 0; i < coo_matrix.numRows && nnz_ctr < nonZeroElements; i++) {
+        for(int j = 0; j < coo_matrix.numCols && nnz_ctr < nonZeroElements; j++) {
+            float val = mat->buffer[(i*coo_matrix.numRows)+j];
+            if(val != 0.0) {
+                coo_matrix.values[nnz_ctr] = val;
+                coo_matrix.rowIdxs[nnz_ctr] = i;
+                coo_matrix.colIdxs[nnz_ctr] = j;
+                nnz_ctr++;
+            } 
+        }
+    }
+    return coo_matrix;
+
+}
+
+/**
+ * Creates a 2D sparse matrix with values set to 1 or 0. The number of zeros depneds on
+ * the desired sparsity factor.
+ */
+SparseMatrix2DCOO ones_sparse_matrix_2D_COO(float sparsityFactor, unsigned int rows, unsigned int cols) {
+
+    Matrix mat;
+    unsigned int nonZeroElements = 0;
+
+    srand(1000);
+    mat.buffer = (float *) malloc(rows * cols * sizeof(float));
+    for(int i = 0; i < rows * cols; i++) {
+        float generatedProb = ((float) rand() / RAND_MAX);
+        if(generatedProb <= sparsityFactor) {
+            mat.buffer[i] = 0.0;
+        } else {
+            mat.buffer[i] = 1.0;
+            nonZeroElements++;
+        }
+    }
+    mat.rows = rows;
+    mat.cols = cols;
+
+    SparseMatrix2DCOO coo_matrix = _convert_2D_matrix_to_sparse_COO(&mat, nonZeroElements);
+    release_matrix(&mat);
+    return coo_matrix;
+}
+
+
+/**
+ * Creates a 2D sparse matrix with values set to a random value or 0. The number of zeros depneds on
+ * the desired sparsity factor.
+ */
+SparseMatrix2DCOO random_sparse_matrix_2D_COO(float sparsityFactor, unsigned int rows, unsigned int cols) {
+
+    Matrix mat;
+    unsigned int nonZeroElements = 0;
+
+    srand(5005);
+    mat.buffer = (float *) malloc(rows * cols * sizeof(float));
+    for(int i = 0; i < rows * cols; i++) {
+        float generatedProb = ((float) rand() / RAND_MAX);
+        if(generatedProb <= sparsityFactor) {
+            mat.buffer[i] = 0.0;
+        } else {
+            mat.buffer[i] = rand();
+            nonZeroElements++;
+        }
+    }
+    mat.rows = rows;
+    mat.cols = cols;
+
+    SparseMatrix2DCOO coo_matrix = _convert_2D_matrix_to_sparse_COO(&mat, nonZeroElements);
+    release_matrix(&mat);
+    return coo_matrix;
+}
+
 /**
  * Creates a 1D matrix of length elements with
  * all values set to 1.0;
@@ -321,6 +419,15 @@ bool release_matrix_3D(Matrix3D * mat) {
 bool release_matrix_1D(Matrix1D * mat) {
     free(mat->buffer);
     return true;
+}
+
+/**
+ * Releases the Sparse 2D Matrix represented in the COO format.
+ */
+bool release_sparse_matrix_2D_COO(SparseMatrix2DCOO * matrix) {
+    free(matrix->rowIdxs);
+    free(matrix->colIdxs);
+    free(matrix->values);
 }
 
 #endif
