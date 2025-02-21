@@ -35,10 +35,52 @@ typedef struct SparseMatrixInfo2DCOO {
     float * values;
 } SparseMatrix2DCOO;
 
+
+typedef struct SparseMatrixInfo2DCSR {
+    unsigned int numRows;
+    unsigned int numCols;
+    unsigned int numNonZeros;
+    unsigned int * rowPtrs;
+    unsigned int * colIdxs;
+    float * values;
+} SparseMatrix2DCSR;
+
 // Declarations.
 bool release_matrix(Matrix * mat);
 Matrix identity_matrix_2D(unsigned int N);
 
+/**
+ * Given the Matrix2D format, converts it into the Sparse matrix
+ * CSR format.
+ */
+SparseMatrix2DCSR _convert_2D_matrix_to_sparse_CSR(Matrix *mat, unsigned int nonZeroElements) {
+    SparseMatrix2DCSR csr_matrix;
+    csr_matrix.colIdxs = (unsigned int *) malloc(sizeof(unsigned int) * nonZeroElements);
+    csr_matrix.rowPtrs = (unsigned int *) malloc(sizeof(unsigned int) * (mat->rows+1));
+    csr_matrix.values = (float *) malloc(sizeof(float) * nonZeroElements);
+    csr_matrix.numNonZeros = nonZeroElements;
+    csr_matrix.numRows = mat->rows;
+    csr_matrix.numCols = mat->cols;
+
+    // First row begins at the 0th location.
+    csr_matrix.rowPtrs[0] = 0;
+
+    unsigned int nnz_ctr = 0.0;
+    for(int i = 0; i < csr_matrix.numRows && nnz_ctr < nonZeroElements; i++) {
+        unsigned int nonZeroCols = 0.0;
+        for(int j = 0; j < csr_matrix.numCols && nnz_ctr < nonZeroElements; j++) {
+            float val = mat->buffer[(i*csr_matrix.numRows)+j];
+            if(val != 0.0) {
+                csr_matrix.values[nnz_ctr] = val;
+                csr_matrix.colIdxs[nnz_ctr] = j;
+                nonZeroCols++;
+                nnz_ctr++;
+            } 
+        }
+        csr_matrix.rowPtrs[i+1] = csr_matrix.rowPtrs[i] + nonZeroCols;
+    }
+    return csr_matrix;
+}
 
 /**
  * Given the Matrix2D format, converts it into the Sparse matrix
@@ -68,6 +110,75 @@ SparseMatrix2DCOO _convert_2D_matrix_to_sparse_COO(Matrix *mat, unsigned int non
     return coo_matrix;
 
 }
+
+/**
+ * Creates a 2D sparse matrix in CSR format with values set to 1 or 0. The number of zeros depneds on
+ * the desired sparsity factor.
+ */
+SparseMatrix2DCSR ones_sparse_matrix_2D_CSR(float sparsityFactor, unsigned int rows, unsigned int cols) {
+
+    Matrix mat;
+    unsigned int nonZeroElements = 0;
+
+    srand(1000);
+    mat.buffer = (float *) malloc(rows * cols * sizeof(float));
+    for(int i = 0; i < rows * cols; i++) {
+        float generatedProb = ((float) rand() / RAND_MAX);
+        if(generatedProb <= sparsityFactor) {
+            mat.buffer[i] = 0.0;
+        } else {
+            mat.buffer[i] = 1.0;
+            nonZeroElements++;
+        }
+    }
+    mat.rows = rows;
+    mat.cols = cols;
+
+    SparseMatrix2DCSR csr_matrix = _convert_2D_matrix_to_sparse_CSR(&mat, nonZeroElements);
+    release_matrix(&mat);
+    return csr_matrix;
+}
+
+
+/**
+ * Creates a 2D sparse matrix in CSR format with values set to a random value or 0. The number of zeros depneds on
+ * the desired sparsity factor.
+ */
+SparseMatrix2DCSR random_sparse_matrix_2D_CSR(float sparsityFactor, unsigned int rows, unsigned int cols) {
+
+    Matrix mat;
+    unsigned int nonZeroElements = 0;
+
+    srand(5005);
+    mat.buffer = (float *) malloc(rows * cols * sizeof(float));
+    for(int i = 0; i < rows * cols; i++) {
+        float generatedProb = ((float) rand() / RAND_MAX);
+        if(generatedProb <= sparsityFactor) {
+            mat.buffer[i] = 0.0;
+        } else {
+            mat.buffer[i] = rand();
+            nonZeroElements++;
+        }
+    }
+    mat.rows = rows;
+    mat.cols = cols;
+
+    SparseMatrix2DCSR csr_matrix = _convert_2D_matrix_to_sparse_CSR(&mat, nonZeroElements);
+    release_matrix(&mat);
+    return csr_matrix;
+}
+
+/**
+ * Creates a 2D identity matrix in the Sparse CSR    format.
+ */
+SparseMatrix2DCSR identity_sparse_matrix_2D_CSR(unsigned int N) {
+
+    Matrix mat = identity_matrix_2D(N);
+    SparseMatrix2DCSR csr_matrix = _convert_2D_matrix_to_sparse_CSR(&mat, N);
+    release_matrix(&mat);
+    return csr_matrix;
+}
+
 
 /**
  * Creates a 2D sparse matrix with values set to 1 or 0. The number of zeros depneds on
@@ -439,6 +550,16 @@ bool release_matrix_1D(Matrix1D * mat) {
  */
 bool release_sparse_matrix_2D_COO(SparseMatrix2DCOO * matrix) {
     free(matrix->rowIdxs);
+    free(matrix->colIdxs);
+    free(matrix->values);
+    return true;
+}
+
+/**
+ * Releases the Sparse 2D Matrix represented in the COO format.
+ */
+bool release_sparse_matrix_2D_CSR(SparseMatrix2DCSR * matrix) {
+    free(matrix->rowPtrs);
     free(matrix->colIdxs);
     free(matrix->values);
     return true;
