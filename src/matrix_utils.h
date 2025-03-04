@@ -389,6 +389,22 @@ Matrix zeros_matrix_2D(unsigned int rows, unsigned int cols) {
 
 /**
  * Creates a 2D matrix of rows*cols in the Row Major format with
+ * all values set to a random value between 0 and maxValue;
+ */
+Matrix random_clipped_matrix_2D(unsigned int rows, unsigned int cols, unsigned int maxValue) {
+
+    Matrix mat;
+    mat.buffer = (float *) malloc(rows * cols * sizeof(float));
+    for(int i = 0; i < rows * cols; i++) {
+        mat.buffer[i] = rand() % (maxValue + 1);
+    }
+    mat.rows = rows;
+    mat.cols = cols;
+    return mat;
+}
+
+/**
+ * Creates a 2D matrix of rows*cols in the Row Major format with
  * all values set to a random value;
  */
 Matrix random_matrix_2D(unsigned int rows, unsigned int cols) {
