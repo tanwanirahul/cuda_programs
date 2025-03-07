@@ -456,6 +456,26 @@ bool are_matrix_equal(Matrix *A, Matrix *B ) {
     return true;
 }
 
+
+/**
+ *  Given the two Matrix, compares their elements and returns true
+ * if all the elements are close (determined by epsillon), false otherwise.
+ */
+bool are_matrix_close(Matrix *A, Matrix *B, float epsilon) {
+
+    if(A->rows != B->rows)
+        return false;
+    if(A->cols != B->cols)
+        return false;
+    for(unsigned int i=0; i<A->rows; i++) {
+        for(unsigned int j=0; j<A->cols; j++)
+            if(abs(A->buffer[(i*A->cols) +j]-B->buffer[(i*B->cols) +j]) > epsilon)
+                return false;
+    }
+    return true;
+}
+
+
 /**
  *  Given the two 3D Matrix, compares their elements and returns true
  * if all the elements are equal, false otherwise.
