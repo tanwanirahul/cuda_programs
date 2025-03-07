@@ -12,3 +12,4 @@ src/scratchpad
 src/*_debug*
 src/T4_device_config
 src/*.dSYM
+src/scratch*
