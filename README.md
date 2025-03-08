@@ -28,3 +28,6 @@ will run on  the device. The error might result from any of these execution path
 
 
 There are best practices you can follow to detect and handle such errors. Furthermore, Nvidia has built various tools to help debug common issues mentioned above. The resource that helped me learn more about the debugging best practices and the tools available [is this video](https://www.youtube.com/watch?v=nAsMhH1tnYw).
+
+## Extras
+In addition to the problems covered in the PMPP course, the repo contains some problems that weren't part of the couese. All cuda program from #32 onwards are outside of the course material. 
