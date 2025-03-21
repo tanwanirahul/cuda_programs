@@ -12,6 +12,21 @@ In addition to the problems covered in the course, this respository contains:
 3. CUDA programs for the exercises mentioned in the lectures. 
 
 
+## Executing CUDA programs:
+
+Each CUDA program contains a main function and should be built and executed independently. These programs rely on a few utility functions from the headers files in the same source directory.
+
+```
+nvcc <cuda_program>.cu -o <cuda_program>
+./cuda_program
+```
+
+For most of the programs simple compilation through nvcc would suffice. However, some programs (for e.g. gemm_with_CuTe.cu) requires CuTe library to be on the include path. To compile and run the programs with CuTe dependency, use the -I flag with nvcc. 
+
+```
+!nvcc <cuda_program>.cu -o <cuda_program> -I<cute_include_path> 
+```
+
 ## Profiling
 
 The profiling tools mentioned in the lecture 7 of the course were nvprof and nvvp. Unfortunately, these profiling tools have been deperecated and aren'r available for latest version of the cuda environment. Nvidia's Nsight Systems and Nsight Compute are the recommended and supported tools for profiling and visualization purposes. 
