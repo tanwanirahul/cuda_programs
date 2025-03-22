@@ -52,7 +52,7 @@ void matmul(const TA *A, const TB *B, TC *C, unsigned int M, unsigned int N, uns
 
 
 template<typename MatShape, typename BLOCK_Tiler,
-        typename TA, typename TB, typename TC, 
+        typename TA, typename TB, typename TC,
         typename AStride, typename BStride, typename CStride,
         typename ASmemLayout, typename BSmemLayout,
         typename AThreadLayout, typename BThreadLayout, typename CThreadLayout>
@@ -70,7 +70,6 @@ __global__ void gemm(MatShape MNK_shape, BLOCK_Tiler block_tiler,
     Tensor mB = make_tensor(make_gmem_ptr(B), select<1,2>(MNK_shape), dB); //(N, K)
     Tensor mC = make_tensor(make_gmem_ptr(C), select<0,1>(MNK_shape), dC); //(M, N)
 
-
     // Block Coordinate - Select the specific tiled block, keeping all the elements on k dimension.
     auto block_coord = make_coord(blockIdx.x, blockIdx.y, _);
 
@@ -79,26 +78,22 @@ __global__ void gemm(MatShape MNK_shape, BLOCK_Tiler block_tiler,
     Tensor blockTile_B = local_tile(mB, block_tiler, block_coord, Step<X, _1, _1>{}); // (BLK_N, BLK_K, NUM_K_Tiles)
     Tensor blockTile_C = local_tile(mC, block_tiler, block_coord, Step<_1, _1, X>{}); // (BLK_M, BLK_N)
 
-
     // Create the shared memory buffer for the block.
     __shared__ TA smemA[cosize(sA_layout)]; // bM * bK
     __shared__ TB smemB[cosize(sB_layout)]; // bN * bK
 
-
     // Create Tensor pointing to SMemory created for A and B tiles.
     Tensor sA = make_tensor(make_smem_ptr(smemA), sA_layout);
     Tensor sB = make_tensor(make_smem_ptr(smemB), sB_layout);
-
 
     // Create a thread layout to assign each thread the subtile to copy
     // from global memory to shared memory. We need to define tensors for both
     // global memory and shared memory.
     Tensor tA_blockTile_A = local_partition(blockTile_A, tA, threadIdx.x); // (THREAD_M, THREAD_K, NUM_K_TILES)
     Tensor tA_sA = local_partition(sA, tA, threadIdx.x); // (THREAD_M, THREAD_K)
-    
+
     Tensor tB_blockTile_B = local_partition(blockTile_B, tB, threadIdx.x); // (THREAD_N, THREAD_K, NUM_K_TILES)
     Tensor tB_sB = local_partition(sB, tB, threadIdx.x); // (THREAD_N, THREAD_K)
-
 
     // Thread partitioning layout for computing the accumulators.
     Tensor tC_sA = local_partition(sA, tC, threadIdx.x, Step<_1, X>{}); // (THREAD_M, BLK_K)
@@ -107,11 +102,12 @@ __global__ void gemm(MatShape MNK_shape, BLOCK_Tiler block_tiler,
 
     // Create a space for local accumulator.
     Tensor tC_rC = make_tensor_like(tC_blockTile_C); // (THREAD_M, THREAD_N)
+
     clear(tC_rC);
 
     #if DEBUG_PRINT
     if(thread0()) {
-        print("  numBlocks: ("); print(blockDim.x); print(",  "); print(blockDim.y); print(")\n");
+        print("  numBlocks: ("); print(gridDim.x); print(",  "); print(gridDim.y); print(")\n");
         print("  block tiler : "); print(block_tiler); print("\n");
         print("\n\n");
         print("  mA : "); print(  mA); print("\n");
@@ -144,25 +140,14 @@ __global__ void gemm(MatShape MNK_shape, BLOCK_Tiler block_tiler,
         copy(tA_blockTile_A(_,_,K_tile), tA_sA);
         copy(tB_blockTile_B(_,_,K_tile), tB_sB);
 
-        #if DEBUG_PRINT
-        if(blockIdx.x == 0 && blockIdx.y == 0) {
-          printf("\nK-Tile: %d, Thread: %d - Loading A[%4.2f] and B[%4.2f]", K_tile, threadIdx.x, tA_sA(0,0), tB_sB(0,0));
-        }
-        #endif
-
         // Sync before using the data from shared memory.
         cp_async_fence();
         cp_async_wait<0>();
         __syncthreads();
 
         gemm(tC_sA, tC_sB, tC_rC);
+        __syncthreads();
     }
-
-    #if DEBUG_PRINT
-      if(blockIdx.x == 0 && blockIdx.y == 0) {
-          printf("\nThread: %d - (%4.2f * %4.2f) + (%4.2f * %4.2f) = %4.2f  ", threadIdx.x, tC_sA(0,0), tC_sB(0,0), tC_sA(0,1), tC_sB(0,1), tC_rC(0,0));
-      }
-    #endif
 
     copy(tC_rC, tC_blockTile_C);
 }
@@ -187,10 +172,10 @@ void gemm_wrapper(TA *host_A, TB *host_B, TC *host_C, unsigned int M, unsigned i
     auto dC = make_stride(ldC, Int<1>{});
 
     // Define the block tiler.
-    auto bM = Int<128>{};  
+    auto bM = Int<128>{};
     auto bN = Int<128>{};
     auto bK = Int<8>{};
-    
+
     auto block_tiler = make_shape(bM, bN, bK);
 
     // Define layout for shared memory.
@@ -220,7 +205,6 @@ void gemm_wrapper(TA *host_A, TB *host_B, TC *host_C, unsigned int M, unsigned i
     cudaHandleSyncError(error);
     stopAndPrintElapsed(&timer, "GPU Device Memory Allocation Time: ", CYAN);
 
-
     // Copy the Input matrix to device memory.
     timer = initTimer(1);
     startTimer(&timer);
@@ -239,9 +223,9 @@ void gemm_wrapper(TA *host_A, TB *host_B, TC *host_C, unsigned int M, unsigned i
 
     dim3 threadsPerBlock(size(tC));
     dim3 numBlocks(size(ceil_div(M, bM)), size(ceil_div(N, bN)));
-    gemm<<<numBlocks, threadsPerBlock>>>(MNK_shape, block_tiler, 
-                                        A_d, B_d, C_d, 
-                                        dA, dB, dC, 
+    gemm<<<numBlocks, threadsPerBlock>>>(MNK_shape, block_tiler,
+                                        A_d, B_d, C_d,
+                                        dA, dB, dC,
                                         sA_layout, sB_layout,
                                         tA, tB, tC);
 
@@ -318,7 +302,7 @@ int main(int argc, char** argv) {
     if(COMPARE_WITH_CPU)
     {
         // Hold results from CPU implementation.
-        TC *host_C_CPU = (TC *) malloc(sizeof(TC) * M * N); 
+        TC *host_C_CPU = (TC *) malloc(sizeof(TC) * M * N);
 
         std::cout << "\nComputing Matrix Multiplication on CPU: \n";
         timer = initTimer(1);
@@ -329,7 +313,7 @@ int main(int argc, char** argv) {
         stopAndPrintElapsed(&timer, "CPU Execution Time: ", CYAN);
 
         std::cout << "\nComparing Results: \n";
-        
+
         Matrix matCHost;
         matCHost.rows = M;
         matCHost.cols = N;
@@ -339,7 +323,7 @@ int main(int argc, char** argv) {
         matCGPU.rows = M;
         matCGPU.cols = N;
         matCGPU.buffer = host_C_GPU;
-        
+
         print2DMatrix(host_C_CPU, M, N, "Matrix C CPU:");
 
         print2DMatrix(host_C_GPU, M, N, "Matrix C GPU:");
@@ -347,9 +331,21 @@ int main(int argc, char** argv) {
         //float eps = 0.00001;
         bool areEqual = are_matrix_equal(&matCGPU, &matCHost);
         std::cout << "\nAre Matrix Equal? " << areEqual << std::endl;
+
+        if(areEqual == 0) {
+          for(unsigned int i=0; i<M; i++) {
+            for(unsigned int j=0; j<N; j++) {
+              if(host_C_CPU[(i*N)+j] != host_C_GPU[(i*N)+j]) {
+                printf("\nFound Mismatch at (%d, %d). CPU: %4.2f, GPU: %4.2f\n", i, j, host_C_CPU[(i*N)+j], host_C_GPU[(i*N)+j]);
+                break;
+              }
+            }
+          }
+        }
+
         free(host_C_CPU);
     }
-    
+
     // release all the memory allocated.
     release_matrix(&matA);
     release_matrix(&matB);
