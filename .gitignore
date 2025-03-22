@@ -14,3 +14,4 @@ src/T4_device_config
 src/*.dSYM
 src/scratch*
 src/CUDA_Toolchain*
+src/*Debug
