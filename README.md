@@ -3,7 +3,7 @@ A repo containing CUDA programs for anyone looking to get started with CUDA prog
 
 The problems are adapted from professor Izzat El Hajj's course on [GPU computing](https://www.youtube.com/playlist?list=PLRRuQYjFhpmubuwx-w8X964ofVkW1T8O4) which draws upon the content from a classic reference book `Programming Massively Parallel Processors by David B. Kirk, Wen-mei W. Hwu', Izzat El Hajj.`
 
-All the programs are tested in an environment having either of Nvidia L4/T4 GPU running with cuda version (12.1).
+All the programs are tested in an environment having either of Nvidia L4/T4 GPU running with cuda version (12.1/12.4).
 
 In addition to the problems covered in the course, this respository contains:
 
