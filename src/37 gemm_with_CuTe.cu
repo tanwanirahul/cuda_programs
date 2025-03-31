@@ -223,6 +223,13 @@ void gemm_wrapper(TA *host_A, TB *host_B, TC *host_C, unsigned int M, unsigned i
     timer = initTimer(1);
     startTimer(&timer);
 
+    // Set the cache configuration for the kernel.
+    // TODO: The behaviour of the kernel is such that it will benefit from having a larger L1 cache to hold 
+    // register spills. However, setting the cache configuration to prefer L1 cache on T4 is resulting in 
+    // a kernel launch failure. Need to investigate this further.
+    //error = cudaFuncSetCacheConfig((const char *) "gemm", cudaFuncCachePreferEqual);
+    //cudaHandleSyncError(error);
+
     dim3 threadsPerBlock(size(tC));
     dim3 numBlocks(size(ceil_div(M, bM)), size(ceil_div(N, bN)));
     gemm<<<numBlocks, threadsPerBlock>>>(MNK_shape, block_tiler,
