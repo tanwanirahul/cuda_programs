@@ -56,7 +56,9 @@ template<typename MatShape, typename BLOCK_Tiler,
         typename AStride, typename BStride, typename CStride,
         typename ASmemLayout, typename BSmemLayout,
         typename AThreadLayout, typename BThreadLayout, typename CThreadLayout>
-__global__ void gemm(MatShape MNK_shape, BLOCK_Tiler block_tiler,
+__global__ void 
+//__maxnreg__(64)
+gemm(MatShape MNK_shape, BLOCK_Tiler block_tiler,
                     TA const *A, TB const *B, TC * C,
                     AStride dA, BStride dB, CStride dC,
                     ASmemLayout sA_layout, BSmemLayout sB_layout,
@@ -174,7 +176,7 @@ void gemm_wrapper(TA *host_A, TB *host_B, TC *host_C, unsigned int M, unsigned i
     // Define the block tiler.
     auto bM = Int<128>{};
     auto bN = Int<128>{};
-    auto bK = Int<8>{};
+    auto bK = Int<4>{};
 
     auto block_tiler = make_shape(bM, bN, bK);
 
@@ -183,8 +185,8 @@ void gemm_wrapper(TA *host_A, TB *host_B, TC *host_C, unsigned int M, unsigned i
     auto sB_layout = make_layout(make_shape(bN, bK), LayoutRight{});
 
     // Define the thread partitioning for sA, sB and C matrix.
-    auto tA = make_layout(make_shape(Int<32>{}, Int<8>{}), LayoutRight{});
-    auto tB = make_layout(make_shape(Int<32>{}, Int<8>{}), LayoutRight{});
+    auto tA = make_layout(make_shape(Int<64>{}, Int<4>{}), LayoutRight{});
+    auto tB = make_layout(make_shape(Int<64>{}, Int<4>{}), LayoutRight{});
     auto tC = make_layout(make_shape(Int<16>{}, Int<16>{}));
 
     // Allocate memory on the device for A, B and C matrix.
