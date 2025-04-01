@@ -1,4 +1,4 @@
-%%writefile gemm_with_CuTe_limited_registers.cu
+//%%writefile gemm_with_CuTe_limited_registers.cu
 
 /**
  * Genralized Matrix Multiplication (GEMM) using the CuTe Tensors
