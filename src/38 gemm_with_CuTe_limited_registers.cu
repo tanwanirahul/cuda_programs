@@ -270,7 +270,7 @@ void gemm_wrapper(TA *host_A, TB *host_B, TC *host_C, unsigned int M, unsigned i
     // Define the MNK_shape
     auto MNK_shape = make_shape(M, N, K);
 
-    // leading dimensions. A is M-major, B is N-major.
+    // leading dimensions. Both A and B are K-major (Row Major).
     unsigned int ldA = K;
     unsigned int ldB = K;
     unsigned int ldC = N;
