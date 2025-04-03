@@ -386,6 +386,22 @@ Matrix zeros_matrix_2D(unsigned int rows, unsigned int cols) {
     return mat;
 }
 
+/**
+ * Creates a 2D matrix of rows*cols in the Row Major format with
+ * values set to sequential values starting from startValue;
+ */
+Matrix sequence_matrix_2D(unsigned int rows, unsigned int cols, float startValue) {
+
+    Matrix mat;
+    mat.buffer = (float *) malloc(rows * cols * sizeof(float));
+    for(int i = 0; i < rows * cols; i++) {
+        mat.buffer[i] = startValue + i;
+    }
+    mat.rows = rows;
+    mat.cols = cols;
+    return mat;
+}
+
 
 /**
  * Creates a 2D matrix of rows*cols in the Row Major format with
