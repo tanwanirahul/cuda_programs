@@ -1,14 +1,12 @@
 /**
- * Genralized Matrix Multiplication (GEMM) using the CuTe Tensors
- and Layout abstractions.
-
+ * Genralized Matrix Multiplication (GEMM)
  C = A * B
 
  A: M * K matrix.
  B: N * K matrix.
  C: M * N matrix.
 
- 
+
  The implementation leverages wmma instruction executed by Tensor cores 
  for matrix multiplication that is available from Volta architecture and later. 
  The code is using SM75 wmma instructions and is expected to be compiled on
